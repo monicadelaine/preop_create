@@ -102,7 +102,6 @@ class robot_create:
 		self._port = p
 		_key = -1  # -1 indicates that it has not been assigned to the world
 		self._robot = Create(self._port)
-		_notelist = []
 		_LEDColor = 255 #Ranges in 0-255. 0=Green, 255=Red
 		_PlayLED = 0
 		_AdvanceLED = 0

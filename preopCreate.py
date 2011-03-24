@@ -17,28 +17,28 @@
 from create import *
 
 #======GLOBAL VARS==================
-global FORWARD = 1
-global BACKWARD = -1
-global LEFT = 1
-global RIGHT = -1
+FORWARD = 1
+BACKWARD = -1
+LEFT = 1
+RIGHT = -1
 
-global SAND = 0
-global DIRT = 1
+SAND = 0
+DIRT = 1
 
-global C = 0
-global C_SHARP = 1
-global D = 2
-global D_SHARP = 3
-global E = 4
-global F = 5
-global F_SHARP = 6
-global G = 7
-global G_SHARP = 8
-global A = 9
-global A_SHARP = 10
-global B = 11
+C = 0
+C_SHARP = 1
+D = 2
+D_SHARP = 3
+E = 4
+F = 5
+F_SHARP = 6
+G = 7
+G_SHARP = 8
+A = 9
+A_SHARP = 10
+B = 11
 
-global DEFAULT_SPEED = 25 #in cm/sec
+DEFAULT_SPEED = 25 #in cm/sec
 
 
 #======NOTE & SONG CLASSES==========
@@ -50,7 +50,7 @@ class note:
 	Length of note (in beats)
 	Plus (in beats)
 	"""
-	def __init__(self, note, octave, bpm = 120, length = 1, plus = 0)
+	def __init__(self, note, octave, bpm = 120, length = 1, plus = 0):
 		self._note = (octave+1)*12 + note #conversion to midi number using ISO standard
 		self._bpm = bpm
 		self._length = length + plus
@@ -74,7 +74,7 @@ class world:
 		self.items = {} #uses numerical keys to keep track of objects. Each object is responsible for its own key	
 		
 	def __findKey__(self):
-			t = 0
+		t = 0
 		while(self.items.has_key(t)):
 			t = t+1
 		return t
@@ -119,7 +119,7 @@ class robot_create:
 		self._robot.stop()
 		
 	def turn(self, dir, amount, duration=1):
-		"""Usage: robot.turn(direction, amount, duration). Direction may be LEFT or RIGHT. Amount is specified in revolutions. Duration is specified in seconds. If no duration is specified, default value is 1. """"
+		"""Usage: robot.turn(direction, amount, duration). Direction may be LEFT or RIGHT. Amount is specified in revolutions. Duration is specified in seconds. If no duration is specified, default value is 1. """
 		#direction is interpreted as relative to robot, i.e. left as CCW, right as CW
 		self._robot.go(1, dir*amount*360/duration) 
 		self._robot.waitAngle(amount*360)
@@ -156,7 +156,7 @@ class robot_create:
 	
 	def powerLEDColor(self, color):
 		"""Usage: robot.powerLEDColor(int). The int value entered should range between 0-255. 0 = Green, 255 = Red. """
-		if(color>0 && color<255):
+		if(color>0 and color<255):
 			self._LEDColor = color
 	
 	def isPlayLEDOn(self, val):

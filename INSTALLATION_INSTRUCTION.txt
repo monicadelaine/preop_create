@@ -1,0 +1,5 @@
+INSTALLATION INSTRUCTIONS:
+
+bluetooth folder, PyBluez-0.18-..., and README should go in your Python26/Lib/site-packages folder
+
+create and pycreate you can put in Python26 folder.

@@ -8,6 +8,10 @@ You will need to install the pycreate and pybluez libraries. Both are included h
 
 bluetooth folder, PyBluez-0.18-..., and README should go in your Python26/Lib/site-packages folder.
 
+OR......
+
+You can download and install it from here: http://code.google.com/p/pybluez/downloads/list
+
 
 ********PYCREATE & PREOPCREATE *************
 

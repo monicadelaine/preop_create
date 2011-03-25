@@ -376,8 +376,8 @@ class Create:
             time.sleep(0.3)
         if (startingMode == FULL_MODE):
             print('Putting the robot into full mode...')
-            self.toSafeMode()
-            time.sleep(0.3)
+            #self.toSafeMode()
+            #time.sleep(0.3)
             self.toFullMode()
             
         self.serialLock = thread.allocate_lock()

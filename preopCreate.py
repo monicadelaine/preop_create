@@ -54,6 +54,7 @@ class note:
 		self._note = (octave+1)*12 + note #conversion to midi number using ISO standard
 		self._bpm = bpm
 		self._length = length + plus
+		self._length = self._length*64
 		
 class song:
 	"""This class creates a song. It stores a list of notes along with the song number. """
@@ -63,7 +64,7 @@ class song:
 		
 	def addNote(self, note):
 		"""Usage: song.addNote(note). Please use included note class to create a note. """
-		self.notelist.append(note)
+		self.notelist.append((note._note, note._length))
 
 #======WORLD CLASS==================
 #Note: if we want to implement some the other functionality provided by ALICE, we would probably need to add it here.
@@ -100,11 +101,11 @@ class robot_create:
 	def __init__(self, p): # the only thing that is different from preop is that creating a robot requires specifying a port number. I didn't see any way around this one.
 		""" You must specify the port number used to connect to the robot to create it. """
 		self._port = p
-		_key = -1  # -1 indicates that it has not been assigned to the world
-		self._robot = Create(self._port)
-		_LEDColor = 255 #Ranges in 0-255. 0=Green, 255=Red
-		_PlayLED = 0
-		_AdvanceLED = 0
+		self._key = -1  # -1 indicates that it has not been assigned to the world
+		self._robot = Create(self._port, FULL_MODE)
+		self._LEDColor = 255 #Ranges in 0-255. 0=Green, 255=Red
+		self._PlayLED = 0
+		self._AdvanceLED = 0
 		
 	def _reconnect(self):
 		""" Restarts connection to robot. Useful if sensors have not properly initialized. """
@@ -113,36 +114,36 @@ class robot_create:
 	def move(self, dir, amount, duration=1):
 		"""Usage: robot.move(direction, amount, duration). Direction may be FORWARD or BACKWARD. Specify amount in meters, duration in seconds. If no duration is specified, default value is 1. """
 		amount = amount*100 #convert from meters to centimeters
-		self._robot.driveDirect(dir*amount/duration, m*amount/duration)
-		self._robot.waitDistance(amount)
+		self._robot.driveDirect(dir*amount/duration, dir*amount/duration)
+		self._robot.waitDistance(dir*amount)
 		self._robot.stop()
 		
 	def turn(self, dir, amount, duration=1):
 		"""Usage: robot.turn(direction, amount, duration). Direction may be LEFT or RIGHT. Amount is specified in revolutions. Duration is specified in seconds. If no duration is specified, default value is 1. """
 		#direction is interpreted as relative to robot, i.e. left as CCW, right as CW
-		self._robot.go(1, dir*amount*360/duration) 
-		self._robot.waitAngle(amount*360)
+		self._robot.go(0, dir*amount*360/duration) 
+		self._robot.waitAngle(dir*amount*360)
 		self._robot.stop()		
 	
 	def moveAtSpeed(self, dir, speed, dur =1):
 		"""Usage: robot.moveAtSpeed(direction, speed, duration). Direction may be FORWARD or BACKWARD. Speed is in m/sec, and duration is in seconds. If no duration is specified, default value is 1. """
-		self._robot.driveDirect(dir*speed, dir*speed)
-		self._robot.waitDistance(speed*duration*100)
+		self._robot.driveDirect(dir*speed*100, dir*speed*100)
+		self._robot.waitDistance(dir*speed*dur*100)
 		self._robot.stop()
 	
 	def turnAtSpeed(self, dir, speed, dur=1):
 		"""Usage: robot.turnAtSpeed(direction, speed, duration). Direction may be LEFT or RIGHT. Speed is in revolutions per second, and duration is in seconds. If no duration is specified, default value is 1. """
-		self._robot.go(1, dir*speed*360)
-		self._robot.waitAngle(speed*dur*360)
+		self._robot.go(0, dir*speed*360)
+		self._robot.waitAngle(dir*speed*dur*360)
 		self._robot.stop()
 		
 	def playNote(self, n):
 		"""Usage: robot.playNote(note). Please use included note class to create a note. """
-		self._robot.playNote(n.note, n.length, 0)
+		self._robot.playNote(n._note, n._length, 0)
 	
 	def playSong(self, s):
 		"""Usage: robot.playSong(song). Please use included song class to create a song. """
-		self._robot.setSong(s.songNum, s.noteList)
+		self._robot.setSong(s.songNum, s.notelist)
 		self._robot.playSongNumber(s.songNum)
 			
 	def isAdvanceLEDOn(self, val):
@@ -151,11 +152,11 @@ class robot_create:
 			self._AdvanceLED = 1
 		else:
 			self._AdvanceLED = 0
-		setLEDs(self._LEDColor, 255, self._PlayLED, self._AdvanceLED)
+		self._robot.setLEDs(self._LEDColor, 255, self._PlayLED, self._AdvanceLED)
 	
 	def powerLEDColor(self, color):
 		"""Usage: robot.powerLEDColor(int). The int value entered should range between 0-255. 0 = Green, 255 = Red. """
-		if(color>0 and color<255):
+		if(color>=0 and color<=255):
 			self._LEDColor = color
 	
 	def isPlayLEDOn(self, val):
@@ -164,52 +165,52 @@ class robot_create:
 			self._PlayLED = 1
 		else:
 			self._PlayLED = 0
-		setLEDs(self._LEDColor, 255, self._PlayLED, self._AdvanceLED)
+		self._robot.setLEDs(self._LEDColor, 255, self._PlayLED, self._AdvanceLED)
 	
 	def leftWheelIsDropped(self):
-		val = self._robot.getSensor(BUMPS_AND_WHEEL_DROPS)
-		if (val[1] == 1): #dropped = 1, not dropped = 0
+		val = self._robot.getSensor("BUMPS_AND_WHEEL_DROPS")
+		if (val[WHEELDROP_LEFT] == 1): #dropped = 1, not dropped = 0
 			return True
 		return False
 	
 	def rightWheelIsDropped(self):
-		val = self._robot.getSensor(BUMPS_AND_WHEEL_DROPS)
-		if (val[2] == 1): #dropped = 1, not dropped = 0
+		val = self._robot.getSensor("BUMPS_AND_WHEEL_DROPS")
+		if (val[WHEELDROP_RIGHT] == 1): #dropped = 1, not dropped = 0
 			return True
 		return False
 	
 	def casterWheelIsDropped(self):
-		val = self._robot.getSensor(BUMPS_AND_WHEEL_DROPS)
-		if (val[0] == 1): #dropped = 1, not dropped = 0
+		val = self._robot.getSensor("BUMPS_AND_WHEEL_DROPS")
+		if (val[WHEELDROP_CASTER] == 1): #dropped = 1, not dropped = 0
 			return True
 		return False
 	
 	def rightBumperIsDepressed(self):
-		val = self._robot.getSensor(BUMPS_AND_WHEEL_DROPS)
-		if (val[4] == 1): #dropped = 1, not dropped = 0
+		val = self._robot.getSensor("BUMPS_AND_WHEEL_DROPS")
+		if (val[BUMP_RIGHT] == 1): #dropped = 1, not dropped = 0
 			return True
 		return False
 	
 	def leftBumperIsDepressed(self):
-		val = self._robot.getSensor(BUMPS_AND_WHEEL_DROPS)
-		if (val[3] == 1): #dropped = 1, not dropped = 0
+		val = self._robot.getSensor("BUMPS_AND_WHEEL_DROPS")
+		if (val[BUMP_LEFT] == 1): #dropped = 1, not dropped = 0
 			return True
 		return False
 	
 	def playButtonIsPressed(self):
-		val = self._robot.getSensor(BUTTONS)
+		val = self._robot.getSensor("BUTTONS")
 		if (val[1] == 1): #button pressed = 1, not pressed = 0
 			return True
 		return False
 		
 	def advanceButtonIsPressed(self):
-		val = self._robot.getSensor(BUTTONS)
+		val = self._robot.getSensor("BUTTONS")
 		if (val[0] == 1): #button pressed = 1, not pressed = 0
 			return True
 		return False
 
 	def detectsWall(self):
-		if (self._robot.getSensor(WALL) == 1): #wall = 1, no wall = 0
+		if (self._robot.getSensor("WALL") == 1): #wall = 1, no wall = 0
 			return True
 		return False
 	

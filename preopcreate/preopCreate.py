@@ -123,7 +123,10 @@ class robot_create:
 		#direction is interpreted as relative to robot, i.e. left as CCW, right as CW
 		self._robot.go(0, dir*amount*360/duration) 
 		self._robot.waitAngle(dir*amount*360)
-		self._robot.stop()		
+		self._robot.stop()	
+
+	def stop(self):
+		self._robot.stop()
 	
 	def moveAtSpeed(self, dir, speed, dur =1):
 		"""Usage: robot.moveAtSpeed(direction, speed, duration). Direction may be FORWARD or BACKWARD. Speed is in m/sec, and duration is in seconds. If no duration is specified, default value is 1. """

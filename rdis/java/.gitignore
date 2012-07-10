@@ -1,0 +1,13 @@
+*.class
+
+# Package Files #
+# *.jar #
+*.war
+*.ear
+
+# Stuff that RXTX makes #
+*.pkc
+*.idx
+
+# Eclipse stuff.
+*.prefs

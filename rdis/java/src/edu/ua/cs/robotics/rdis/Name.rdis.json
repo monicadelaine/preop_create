@@ -1,0 +1,50 @@
+{
+  "name": "Name", 
+  "author": "Annonymous", 
+  "stateVariables": [
+    {
+      "type": "int", 
+      "name": "bumpers", 
+      "value": ""
+    }
+  ], 
+  "interfaces": [
+    {
+      "primitiveCalls": [
+        {
+          "priority": 0, 
+          "delay": 1000, 
+          "arguments": [], 
+          "name": "start"
+        }, 
+        {
+          "priority": 1, 
+          "delay": 1000, 
+          "arguments": [], 
+          "name": "Full"
+        }
+      ], 
+      "type": "adhoc", 
+      "name": "startUp"
+    }, 
+    {
+      "primitiveCalls": [
+        {
+          "priority": 0, 
+          "delay": 0, 
+          "arguments": [], 
+          "name": "bumpers"
+        }
+      ],
+      "triggers": "detect_bump",
+      "type": "adhoc", 
+      "name": "stayAlive"
+    }, 
+    {
+      "primitiveCalls": [
+        {
+          "priority": 3, 
+          "delay": 1000, 
+          "arguments": [
+            "<velocity * 1000>", 
+            "<radius * 1000>"

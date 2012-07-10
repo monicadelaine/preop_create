@@ -1,0 +1,75 @@
+{
+  "name": "exampleRobot",
+  "state": [
+    {"type": "int", "name": "leftSpeed"},
+    {"type": "int", "name": "rightSpeed"},
+    {"type": "int", "name": "leftMinusRight"},
+    {"type": "int", "name": "metersToTicks", "value": 111}
+  ],
+
+  "threading": {
+    "single": [
+      {
+        "name": "mainThreadModel",
+        "freq": 10
+      }
+    ]
+  },
+
+  "connections": {
+    "spp": [
+      { "name": "serialConnection",
+        "threading": "mainThreadModel",
+        "speed": 38400,
+        "onStart": "resetOdometry",
+        "onTerminate": "resetOdometry",
+        "onKeepalive": {
+          "name": "getSpeed",
+          "interval": 10
+        }
+      }
+    ]
+  },
+
+  "primitives": [
+    {
+      "signature": {
+        "name": "setSpeed",
+        "parameters": [
+          {"type": "int", "name": "L"},
+          {"type": "int", "name": "R"}
+        ]
+      },
+      "writeFormat": {
+        "format": "SETSPEED: %d,%d",
+        "parameters": [
+          "<L>", "<R>"
+        ]
+      },
+      "readFormat": {
+        "regex": "^NEWSPEED: ([-]?[0-9]+),([-]?[0-9]+)$",
+        "expression": "<leftMinusRight = atoi($1) - atoi($2)>"
+      }
+    }
+  ],
+
+  "interfaces": [
+    {
+      "signature": {
+        "name": "go",
+        "parameters": [
+          {"type": "float", "name": "howMuch"}
+        ]
+      },
+      "freq": "adhoc",
+
+      "primitive": {
+        "name": "setSpeed",
+        "arguments": [
+          {"name": "L", "value": "<howMuch * metersToTicks>"},
+          {"name": "R", "value": "<howMuch * metersToTicks>"}
+        ]
+      }
+    }
+  ]
+}

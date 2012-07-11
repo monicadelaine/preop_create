@@ -2,6 +2,8 @@ package edu.ua.cs.robotics.rdis;
 
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Random;
 
 import org.python.core.PyObject;
@@ -29,6 +31,10 @@ public abstract class Connection {
 	
 	protected Random mRNG = new Random();
 	
+	private InputStream mOverrideInputStream;
+	
+	private OutputStream mOverrideOutputStream;
+	
 	protected Connection(RDIS parent, String name) {
 		mParent = parent;
 		mName = name;
@@ -39,14 +45,18 @@ public abstract class Connection {
 			mInitialized = true;
 		}
 		
-		// Initializes the port.
-		onStartup(portName);
+		// Initializes the port if not overridden.
+		if(!isOverridden()) {
+			onStartup(portName);
+		}
 		
 		doCall(mStartup);
 	}
 	
 	public void keepalive() throws RDISException {
-		onKeepalive();
+		if(!isOverridden()) {
+			onKeepalive();
+		}
 		doCall(mKeepalive);
 	}
 	
@@ -60,6 +70,13 @@ public abstract class Connection {
 	
 	public void setStartup(Call startup) {
 		mStartup = startup;
+	}
+	
+	public void override(InputStream is, OutputStream os) {
+		if(is == null || os == null) return;
+		
+		mOverrideInputStream = is;
+		mOverrideOutputStream = os;
 	}
 	
 	private void doCall(Call call) throws RDISException {
@@ -86,7 +103,10 @@ public abstract class Connection {
 			mParent.getLog().warn("Could not close connection `" + mName + "`.");
 		}
 		finally {
-			onTerminate();
+			// Don't call abstract methods if overriden.
+			if(!isOverridden()) {
+				onTerminate();
+			}
 		}
 	}
 	
@@ -100,6 +120,10 @@ public abstract class Connection {
 	/** Child classes override this for connection-specific behavior */
 	protected abstract void onTerminate();
 	
+	protected abstract void onWrite(byte stuff[]) throws RDISException;
+	
+	protected abstract byte[] onRead(int num) throws RDISException;
+	
 	/**
 	 * Gets the name of this connection.
 	 * @return the name of the connection
@@ -108,27 +132,45 @@ public abstract class Connection {
 		return mName;
 	}
 	
+	/**
+	 * Writes an array of bytes to overriden OutputStream or child class implementation of onWrite().
+	 * @param stuff the byte array to write
+	 * @throws RDISException if there was an I/O error
+	 */
 	public void write(byte stuff[]) throws RDISException {
-		/*
-		 * Dummy method for writing to an abstract connection.
-		 */
-
-		String hexArray = toHexArray(stuff);
-		System.out.println("write( [" + hexArray + "] )");
+		if(mOverrideOutputStream != null) {
+			try {
+				mOverrideOutputStream.write(stuff);
+			} catch (IOException e) {
+				throw new RDISException("Error writing to overrideen OutputStream.", e);
+			}
+		}
+		else {
+			onWrite(stuff);
+		}
+		
+		mParent.getLog().debug("Wrote (" + mName + "): " + toHexArray(stuff));
 	}
 	
 	public byte[] read(int num) throws RDISException {
-		/*
-		 * Dummy method for reading bytes.
-		 */
+		byte bytes[] = new byte[num];
+		if(mOverrideInputStream != null) {
+			try {
+				mOverrideInputStream.read(bytes);
+			} catch (IOException e) {
+				throw new RDISException("Error reading from overridden InputStream.", e);
+			}
+		}
+		else {
+			bytes = onRead(num);
+		}
 		
-		System.out.println("SUPER");
-		byte bytes[] = new byte[ num ];
-		mRNG.nextBytes(bytes);
-		
-		System.out.println("read( [" + toHexArray(bytes) + "] )");
-		
+		mParent.getLog().debug("Read (" + mName + "): " + toHexArray(bytes));
 		return bytes;
+	}
+	
+	public boolean isOverridden() {
+		return mOverrideInputStream != null && mOverrideOutputStream != null;
 	}
 	
 	protected String toHexArray(byte stuff[]) {

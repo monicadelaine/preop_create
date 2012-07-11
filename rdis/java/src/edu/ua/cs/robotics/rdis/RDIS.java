@@ -3,6 +3,9 @@ package edu.ua.cs.robotics.rdis;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,7 +39,8 @@ public class RDIS {
 	
 	private Log mLog = new Log(Log.WARN) {
 		public void onMessage(int msgLevel, String code, String msg) {
-			System.err.println(code + "(" + msgLevel + "): " + msg);
+			Timestamp stmp = new Timestamp(System.currentTimeMillis());
+			System.err.println(stmp + " " + code + " (" + msgLevel + "): " + msg);
 		}
 	};
 
@@ -143,6 +147,17 @@ public class RDIS {
 			Connection connection = (Connection) it.next();
 			connection.startup(portName);
 		}
+	}
+	
+	public void overrideConnection(String name, InputStream is, OutputStream os) {
+		Connection c = (Connection) mConnections.get(name);
+		
+		if(c == null) {
+			mLog.warn("No such connection: `" + name + "`");
+			return;
+		}
+		
+		c.override(is,os);
 	}
 
 	/**

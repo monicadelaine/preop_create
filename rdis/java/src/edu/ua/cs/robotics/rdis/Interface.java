@@ -53,8 +53,7 @@ public class Interface {
 			try {
 				Thread.sleep(generalCall.interval);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RDISException("Interrupted pausing between Primitive calls.", e);
 			}
 
 			if (mTriggers != null && mTriggers.length() > 0) {

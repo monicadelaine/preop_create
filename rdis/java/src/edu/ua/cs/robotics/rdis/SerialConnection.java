@@ -43,7 +43,7 @@ public class SerialConnection extends Connection {
 		}
 	}
 
-	public byte[] read(int num) throws RDISException {
+	public byte[] onRead(int num) throws RDISException {
 		try {
 			InputStream is = mSerialPort.getInputStream();
 			byte b[] = new byte[num];
@@ -56,12 +56,10 @@ public class SerialConnection extends Connection {
 		}
 	}
 
-	public void write(byte bytes[]) throws RDISException {
+	public void onWrite(byte bytes[]) throws RDISException {
 		try {
 			OutputStream os = mSerialPort.getOutputStream();
 			os.write(bytes);
-			mParent.getLog().debug("Wrote (" + mName + "): " + toHexArray(bytes));
-			
 		} catch (IOException e) {
 			throw new RDISException("Error writing on connection `" + mName + "`", e);
 		}

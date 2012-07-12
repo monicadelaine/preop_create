@@ -11,12 +11,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Represents a connection over the serial port to a robot. This generalizes
+ * anything that looks like a serial connection to the hosting computer's
+ * operating system.
+ *
+ */
 public class SerialConnection extends Connection {
 
+	/** Baud for the serial connection. */
 	private int mBaud;
 
+	/** Instance of the serial connection. */
 	private SerialPort mSerialPort;
 
+	/**
+	 * Constructs a SerialConnection
+	 * @param parent RDIS parent object
+	 * @param name name of the connection
+	 * @param baud baud for the serial connection
+	 */
 	public SerialConnection(RDIS parent, String name, int baud) {
 		super(parent, name);
 		mBaud = baud;
@@ -24,10 +38,15 @@ public class SerialConnection extends Connection {
 
 	public void onStartup(String portName) throws RDISException {
 		try {
+			// Boilerplate setup logic per the Java Communications API.
 			CommPortIdentifier portIdentifier = CommPortIdentifier
 					.getPortIdentifier(portName);
-			CommPort commPort = portIdentifier.open("RDIS", 2000);
+			CommPort commPort = portIdentifier.open(RDIS.APP_NAME, DEFAULT_TIMEOUT);
 			mSerialPort = (SerialPort) commPort;
+			
+			// TODO: Possibly configurable section alert!
+			// Currently we assume a bit width of 8, 1 stop bit, and no parity because these are
+			// common settings. Beware, there could be exceptions to this!
 			mSerialPort.setSerialPortParams(mBaud, SerialPort.DATABITS_8,
 					SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
 
@@ -66,11 +85,16 @@ public class SerialConnection extends Connection {
 	}
 
 	protected void onKeepalive() {
-		// TODO Auto-generated method stub
+		// Nothing to do.
 	}
 
 	protected void onTerminate() {
-		mSerialPort.close();
+		if(mSerialPort != null) {
+			mSerialPort.close();
+		}
 	}
+	
+	public static final int
+		DEFAULT_TIMEOUT = 2000;
 
 }

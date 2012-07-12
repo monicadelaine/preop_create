@@ -1,6 +1,5 @@
 package edu.ua.cs.robotics.rdis;
 
-import org.python.util.PythonInterpreter;
 
 /**
  * Represents the desired path for a differential-drive robot. 
@@ -37,21 +36,4 @@ public class DifferentialSpeed extends DomainAdapter {
 	public static final String
 		LINEAR = "linear",
 		ANGULAR = "angular";
-	
-	public static void main(String args[]) {
-		DifferentialSpeed ds = new DifferentialSpeed(0.2f, 0.4f);
-		
-		System.out.println(ds.getLinear());
-		System.out.println(ds.getAngular());
-		
-		PythonInterpreter py = new PythonInterpreter();
-		ds.inject(py);
-		
-		py.exec("print 'linear =', linear");
-		py.exec("print 'angular =', angular");
-		
-		// See: http://chess.eecs.berkeley.edu/eecs149/documentation/differentialDrive.pdf
-		py.exec("print 'V_R = ', linear + (0.4 * angular)/2");
-		py.exec("print 'V_L = ', linear - (0.4 * angular)/2");
-	}
 }

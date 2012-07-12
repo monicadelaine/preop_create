@@ -1,6 +1,5 @@
 package edu.ua.cs.robotics.rdis;
 
-import java.util.Arrays;
 
 /**
  * Lots of things call other things in RDIS. Therefore, it seems logical
@@ -19,54 +18,64 @@ import java.util.Arrays;
  */
 public class Call implements Comparable {
 	
-	public Call(String what) {
-		this(what, new String[0]);
+	/**
+	 * Constructs a no-args call.
+	 * @param name name of thing to call
+	 */
+	public Call(String name) {
+		this(name, new String[0]);
 	}
 	
-	public Call(String what, String args[]) {
-		this(what, args, 0);
+	/**
+	 * Constructs a call with given arguments.
+	 * @param name name of thing to call
+	 * @param args arguments for the call
+	 */
+	public Call(String name, String args[]) {
+		this(name, args, 0);
 	}
 	
-	public Call(String what, String args[], int interval) {
-		this(what, args, interval, 0);
+	/**
+	 * Constructs a call with given arguments and interval.
+	 * @param name name of thing to call
+	 * @param args arguments for the call
+	 * @param interval amount of time to pause in milliseconds after the call.
+	 */
+	public Call(String name, String args[], int interval) {
+		this(name, args, interval, 0);
 	}
 	
-	public Call(String what, String args[], int interval, int priority) {
-		this.what = what;
+	/**
+	 * Constructs a call with given arguments, interval, and priority.
+	 * @param name name of thing to call
+	 * @param args arguments for the call
+	 * @param interval amount of time to pause in milliseconds after call
+	 * @param priority priority of the call
+	 */
+	public Call(String name, String args[], int interval, int priority) {
+		this.name = name;
 		this.args = args;
 		this.interval = interval;
 		this.priority = priority;
 	}
 	
-	public String what;
+	/** Name of the thing to call. */
+	public String name;
+	
+	/** Arguments (as Python expressions) for the Call. */
 	public String args[];
+	
+	/** Time in milliseconds to pause after the call. */
 	public int interval;
+	
+	/** For use in sorting. */
 	public int priority;
 
-	public static void main(String[] args){
-		Call doCall = new Call("What Me");
-		
-		System.out.println("---- Init ----");
-		System.out.println(doCall.what);
-		
-		System.out.println("\n---- 2 ----");
-		doCall.args = new String[]{"this", "little", "light" };
-		System.out.println(Arrays.toString(doCall.args));
-		System.out.println("\n---- 3 ----");
-		System.out.println("========= String List Declaration. . . =========");
-		String[] stringList = new String[]{"a", "b","D", "x", "m", "r", "s"};
-		
-		System.out.println("stringList = null;");
-		stringList = null;
-		
-		System.out.println("    ========= Start For Loop =========");
-		for (int i = 0; stringList != null && (i < stringList.length); i++) {
-			System.out.println("    " + stringList[i]);
-
-		}
-
-	}
-
+	/**
+	 * Compares a Call to other objects. If the object is another, call
+	 * it will compare by priority. Otherwise, the Call object will be
+	 * considered "less than" all other classes.
+	 */
 	public int compareTo(Object other) {
 		if(! (other instanceof Call)) return -1;
 		

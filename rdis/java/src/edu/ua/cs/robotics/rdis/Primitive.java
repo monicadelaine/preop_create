@@ -158,35 +158,4 @@ public class Primitive {
 		return p;
 	}
 
-	public static void main(String args[]) throws IOException {
-		try {
-			System.out.print("== INTRO ==\n");
-			RDIS rdis = new RDIS();
-			rdis.addStateVariable(StateVariable.newInteger("foo", 42));
-			rdis.addStateVariable(StateVariable.newInteger("bar", 24));
-			rdis.addConnection(new SerialConnection(rdis, "btserial", 57600));
-			
-			Primitive p = Primitive.newFixedWidth(rdis,
-					"some_primitive", 
-					new String[] {	"velocity", "radius" },
-					"btserial",
-					new String[] { "<137>", "<velocity>", "<radius>" },
-					null,
-					">Bhh",
-					"B"); 
-					
-			
-//			/* This broke because now we want PyObject instead of Object */
-//			p.call(new Object[]{ new Integer(12), new Integer(32)});
-			
-			
-			// Note that the StateVariables are available in the PythonInterpreter. 
-			PythonInterpreter py = rdis.getPythonInterpreter();
-			py.exec("print 'foo + bar = ', foo + bar");
-			
-		}
-		finally {
-			System.out.print("== FINIS ==\n");
-		}
-	}
 }

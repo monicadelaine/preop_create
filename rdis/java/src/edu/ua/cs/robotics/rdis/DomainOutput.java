@@ -7,14 +7,29 @@ import java.util.Set;
 
 import org.python.util.PythonInterpreter;
 
+/**
+ * Represents an "output" for the model. 
+ *
+ * Domain Outputs send {@link DomainAdapter Domain Adapters} as messages
+ * back to the software framework.
+ *
+ */
 public class DomainOutput {
 	
+	/** RDIS parent object. */
 	private RDIS mParent;
 	
+	/** Name of Domain Output. */
 	private String mName;
 	
+	/** Attribute names and expressions returned by this DomainOutput. */
 	private HashMap mReturns = new HashMap();
 	
+	/**
+	 * Constructs a Domain Output.
+	 * @param parent parent RDIS object
+	 * @param name name of Domain Output
+	 */
 	public DomainOutput(RDIS parent, String name) {
 		mParent = parent;
 		mName = name;
@@ -56,24 +71,4 @@ public class DomainOutput {
 		mReturns.put(name,expression);
 	}
 	
-	public static void main(String args[]) {
-		RDIS rdis = new RDIS();
-		
-		rdis.addStateVariable(StateVariable.newFloat("pi", 3.14159f));
-		
-		DomainOutput domOutput = new DomainOutput(rdis, "piMaker");
-		domOutput.addReturns("piOverTwo", "<pi / 2>");
-		domOutput.addReturns("piTimesTwo", "<pi * 2>");
-		rdis.addDomainOutput(domOutput);
-		
-		rdis.setCallback(new RDIS.Callback() {
-			public void onMessageReceived(String name, DomainAdapter contents) {
-				System.out.println("Triggered: " + name);
-				System.out.println("Pi over two: " + contents.getFloat("piOverTwo"));
-				System.out.println("Pi times two: " + contents.getFloat("piTimesTwo"));
-			}
-		});
-		
-		domOutput.call();
-	}
 }

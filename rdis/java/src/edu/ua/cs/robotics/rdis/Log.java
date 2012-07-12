@@ -1,10 +1,17 @@
 package edu.ua.cs.robotics.rdis;
 
 /**
- * This class handles logging
+ * Logging mechanism for RDIS.
+ * 
+ * Subclasses of this class should override {@link Log#onMessage(int, String, String)} to
+ * provide custom means to handle logging messages.
  */
 public abstract class Log {
 
+	/**
+	 * Integer code for the current log level. Any message received at or above this threshold
+	 * will be delivered.
+	 */
 	private int mLogLevel = 0;
 	
 	/**
@@ -86,6 +93,8 @@ public abstract class Log {
 	
 	/** 
 	 * Handles a log message which is at or above current log level.
+	 * @param msgLevel the message importance level
+	 * @param code human-friendly code for the message importance level
 	 * @param msg the message
 	 */
 	public abstract void onMessage(int msgLevel, String code, String msg);
@@ -105,6 +114,10 @@ public abstract class Log {
 		"ALL", "DBG", "INFO", "WARN", "ERR", "CRI"
 	};
 
+	/**
+	 * Sets the log level.
+	 * @param logLevel the new log level
+	 */
 	public void setLogLevel(int logLevel) {
 		mLogLevel = logLevel;
 	}

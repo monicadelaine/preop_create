@@ -1,6 +1,5 @@
 package edu.ua.cs.robotics.rdis;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -12,6 +11,16 @@ import org.python.core.PyInteger;
 import org.python.core.PyString;
 import org.python.util.PythonInterpreter;
 
+/**
+ * Represents a message which can travel to or from the robot model.
+ * 
+ * Subclasses of this class constrain the possible types of Domain Adapter
+ * (see {@link Range} and {@link DifferentialSpeed}). This class is not
+ * abstract because currently the textual syntax does not provide a means to
+ * map DomainOutputs to the specific type of DomainAdapter they return. As a
+ * result, DomainAdapter must be instantiated inside of the DomainOutput, built
+ * manually, and returned.
+ */
 public class DomainAdapter {
 	
 	/** Stores the Domain Adapter's attributes. */
@@ -44,6 +53,12 @@ public class DomainAdapter {
 		}
 	}
 	
+	/**
+	 * Returns true if this DomainAdapter has the attribute
+	 * named {@code name}.
+	 * @param name the name of the attribute
+	 * @return true if the DomainAdapter contains the attribute
+	 */
 	public boolean has(String name) {
 		return mMap.containsKey(name);
 	}
@@ -130,7 +145,12 @@ public class DomainAdapter {
 		return mMap.put(name, value);
 	}
 	
-	protected void putAll(HashMap map) {
+	/**
+	 * Puts all the key/values in {@code map} in the attributes table
+	 * of the DomainAdapter.
+	 * @param map the map to use
+	 */
+	protected void putAll(Map map) {
 		mMap.putAll(map);
 	}
 }

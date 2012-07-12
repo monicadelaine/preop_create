@@ -2,7 +2,6 @@ package edu.ua.cs.robotics.rdis;
 
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
@@ -24,7 +23,7 @@ public class RDIS {
 	/** Callback interface for triggered Domain Outputs */
 	private RDIS.Callback mCallback;
 
-	// PMK: I think Java 1.3 does not support generics. We should avoid it.
+	/** Maps model component names to the model component objects. */
 	private HashMap 
 			mPrimitives = new HashMap(),
 			mConnections = new HashMap(),
@@ -33,10 +32,14 @@ public class RDIS {
 			mDomainOutputs = new HashMap(),
 			mDomainInterfaces = new HashMap();
 
+	/** Name of the model. */
 	private String mName;
 
+	/** Name of the modeler. */
 	private String mAuthor;
 	
+	/** Logging handler. */
+	// Default behavior: output warnings and above to stderr.
 	private Log mLog = new Log(Log.WARN) {
 		public void onMessage(int msgLevel, String code, String msg) {
 			Timestamp stmp = new Timestamp(System.currentTimeMillis());
@@ -47,21 +50,39 @@ public class RDIS {
 	/**
 	 * RDIS cannot be instantiated directly. Use RDIS.load(String).
 	 */
-	protected RDIS() {
-		// TODO: We'll write something later that actually constructs this from the parsed JSON
-	}
+	protected RDIS() { }
 
 	/**
-	 * Registers a callback to handle messages
+	 * Registers a callback to handle messages from Domain Outputs.
 	 * 
-	 * @param callback
+	 * @param callback the callback
 	 */
 	public void setCallback(RDIS.Callback callback) {
 		mCallback = callback;
 	}
 	
+	/**
+	 * Sets the log level of the current logging handler.
+	 * @param logLevel new log level
+	 */
 	public void setLogLevel(int logLevel) {
 		mLog.setLogLevel(logLevel);
+	}
+	
+	/**
+	 * Returns the author of this description.
+	 * @return name of author
+	 */
+	public String getAuthor() {
+		return mAuthor;
+	}
+	
+	/**
+	 * Returns the name of this model.
+	 * @return name of model
+	 */
+	public String getName() {
+		return mName;
 	}
 	
 	/**
@@ -75,10 +96,13 @@ public class RDIS {
 	/**
 	 * Calls a Domain Interface for this model.
 	 * 
-	 * @param name
-	 *            the name of the Domain Interface to call
-	 * @param domainAdapter
-	 * @throws IOException 
+	 * Domain Interfaces are the standard interfaces by which a framework can
+	 * deliver a message to the robot. The model will handle the contruction and
+	 * routing of the message to the connection.
+	 * 
+	 * @param name the name of the Domain Interface to call
+	 * @param domainAdapter the message to send
+	 * @throws RDISException if there was a problem communicating with the robot.
 	 */
 	public void callDomainInterface(String name, DomainAdapter adapter) throws RDISException {
 		DomainInterface domainInterface = (DomainInterface) mDomainInterfaces.get(name);
@@ -88,31 +112,37 @@ public class RDIS {
 			return;
 		}
 		domainInterface.call(adapter);
-		
 	}
 	
-	protected Primitive getPrimitive(String name) {
-		return (Primitive) mPrimitives.get(name);
-	}
-	
-	protected void callPrimitive(String name, PyObject pyPosArg[]) throws RDISException {
-		Primitive p = getPrimitive(name);
+	/**
+	 * Calls a {@link Primitive}.
+	 * 
+	 * @param name the name of the Primitive to call
+	 * @param arguments the arguments to give the Primitive
+	 * @throws RDISException if there was a communication problem
+	 */
+	protected void callPrimitive(String name, PyObject arguments[]) throws RDISException {
+		Primitive p = (Primitive) mPrimitives.get(name);
 		if (p == null){
 			mLog.error("Called nonexistent primitive: `" + name + "`");
 			return;
 		}
 		
-		int argCount = (pyPosArg == null) ? 0 : pyPosArg.length;
+		int argCount = (arguments == null) ? 0 : arguments.length;
 		
 		// Verifies Lists[] are parallel (same size)
 		if(p.parameterCount() != argCount){
-			mLog.error("Argument length mismatch for Primitive.");
-			return;
+			throw new RDISException("Argument length mismatch for Primitive.");
 		}
 		
-		p.call(pyPosArg);
+		p.call(arguments);
 	}
 
+	
+	/**
+	 * Calls a {@link DomainOutput}.
+	 * @param name the name of the Domain Output to call
+	 */
 	protected void callDomainOutput(String name) {
 		DomainOutput domainOutput = getDomainOutput(name);
 		if(domainOutput == null){
@@ -123,14 +153,20 @@ public class RDIS {
 		domainOutput.call();
 	}
 
-	protected void callInterface(String interfaceName, PyObject[] posArgs) throws RDISException {
+	/**
+	 * Calls an {@link Interface}.
+	 * @param interfaceName the name of the Interface to call
+	 * @param arguments arguments for the call
+	 * @throws RDISException if there was a communication error
+	 */
+	protected void callInterface(String interfaceName, PyObject[] arguments) throws RDISException {
 		Interface i = (Interface) mInterfaces.get(interfaceName);
 		if (i == null){
 			mLog.error("Called nonexistant local interface.");
 			//TODO: Handle Error
 			return;
 		}	
-		i.call(posArgs);
+		i.call(arguments);
 	}
 	
 	/**
@@ -149,6 +185,13 @@ public class RDIS {
 		}
 	}
 	
+	/**
+	 * Overrides a {@link Connection}'s subclass read/write behavior with a pair
+	 * of Input/OutputStreams.
+	 * @param name the name of the Connection
+	 * @param is the InputStream to use
+	 * @param os the OutputStream to use
+	 */
 	public void overrideConnection(String name, InputStream is, OutputStream os) {
 		Connection c = (Connection) mConnections.get(name);
 		
@@ -169,7 +212,7 @@ public class RDIS {
 		
 		for(Iterator it = values.iterator(); it.hasNext();) {
 			Connection connection = (Connection) it.next();
-			connection.keepalive();
+			connection.tick();
 		}
 	}
 
@@ -259,20 +302,32 @@ public class RDIS {
 		mDomainOutputs.put(domOutput.getName(), domOutput);
 	}
 	
+	/**
+	 * Adds a {@link DomainInterface} to the model.
+	 * @param domInterface the Domain Interface to add.
+	 */
 	public void addDomainInterface(DomainInterface domInterface) {
 		mDomainInterfaces.put(domInterface.getName(), domInterface);
 	}
 	
+	/**
+	 * Adds an {@link Interface} to the model.
+	 * @param iface the Interface to add
+	 */
 	public void addInterface(Interface iface) {
 		mInterfaces.put(iface.getName(), iface);
 	}
-	
+
+	/**
+	 * Adds a {@link Primitive} to the model.
+	 * @param p
+	 */
 	public void addPrimitive(Primitive p) {
 		mPrimitives.put(p.getName(), p);
 	}
 	
 	/**
-	 * Adds a Connection to the model.
+	 * Adds a {@link Connection} to the model.
 	 * @param connection the connection to add
 	 */
 	public void addConnection(Connection connection) {
@@ -282,8 +337,7 @@ public class RDIS {
 	/**
 	 * Loads an RDIS object from an RDIS description.
 	 * 
-	 * @param rdisFile
-	 *            path to file containing the RDIS description
+	 * @param rdisFile path to file containing the RDIS description
 	 * @return the loaded RDIS model
 	 * @throws JSONException 
 	 * @throws FileNotFoundException 
@@ -350,6 +404,13 @@ public class RDIS {
 		return returnValue;
 	}
 	
+	/**
+	 * Calls {@link #safeEval(String, PythonInterpreter)} on a set of Python expressions
+	 * and returns the result as an array. 
+	 * @param expressions the Python expressions
+	 * @param env the PythonInterpreter to use
+	 * @return an array of the expressions
+	 */
 	public static PyObject[] safeEvalAll(String[] expressions, PythonInterpreter env) {
 		
 		if (expressions != null) {
@@ -366,6 +427,12 @@ public class RDIS {
 		return null;
 	}
 	
+	/**
+	 * Delivers a message to the registered {@link RDIS.Callback}.
+	 * 
+	 * @param name the issuing {@link DomainOutput}
+	 * @param adapter the outgoing {@link DomainAdapter}
+	 */
 	public void deliverMessage(String name, DomainAdapter adapter) {
 		if(mCallback != null) {
 			mCallback.onMessageReceived(name, adapter);
@@ -374,4 +441,7 @@ public class RDIS {
 			mLog.warn("Message received from `" + name + "` but no callback is set.");
 		}
 	}
+	
+	public static final String
+		APP_NAME = "RDIS";
 }

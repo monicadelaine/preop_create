@@ -235,64 +235,71 @@ public class StateVariable {
 		return (String) TYPE_MAP[0][0];
 	}
 	
+	/**
+	 * Creates a new integer State Variable
+	 * @param name the name of the state variable
+	 * @return a new integer State Variable
+	 */
 	public static StateVariable newInteger(String name) {
 		return newInteger(name, 0);
 	}
 	
+	/**
+	 * Creates a new integer State Variable
+	 * @param name the name of the state variable
+	 * @param value the initial value
+	 * @return a new integer State Variable
+	 */
 	public static StateVariable newInteger(String name, int value) {
 		return new StateVariable(TYPE_INT, name, new Integer(value));
 	}
 	
+	/**
+	 * Creates a new string State Variable
+	 * @param name the name of the state variable
+	 * @return a string state variable
+	 */
 	public static StateVariable newString(String name) {
 		return newString(name, "");
 	}
 	
+	/**
+	 * Creates a new string State Variable
+	 * @param name the name of the state variable
+	 * @param value the initial value
+	 * @return a string state variable
+	 */
 	public static StateVariable newString(String name, String value) {
 		return new StateVariable(TYPE_STRING, name, value);
 	}
 	
+	/**
+	 * Creates a new float State Variable
+	 * @param name the name of the state variable
+	 * @return a float state variable
+	 */
 	public static StateVariable newFloat(String name) {
 		return newFloat(name, 0.0f);
 	}
 	
+	/**
+	 * Creates a new float State Variable
+	 * @param name the name of the state variable
+	 * @param value the default value of the state variable
+	 * @return a float state variable
+	 */
 	public static StateVariable newFloat(String name, float value) {
 		return new StateVariable(TYPE_FLOAT, name, new Float(value));
 	}
 	
-	public static void main(String args[]) {
-		StateVariable sv[] = {
-			StateVariable.newInteger("a"),
-			StateVariable.newFloat("b"),
-			StateVariable.newString("c"),
-			StateVariable.newInteger("d", 50),
-			StateVariable.newFloat("f", 0.15f),
-			StateVariable.newString("e", "Hello, world!")
-		};
-		
-		for(int i = 0; i < sv.length; i++) {
-			System.out.print(sv[i].getName() + " = ");
-			System.out.println(sv[i]);
-			
-			int which = i%3;
-			
-			switch(which) {
-			case 0: sv[i].setValue(42); break;
-			case 1: sv[i].setValue(3.14159f); break;
-			case 2: sv[i].setValue("Goodbye, world!"); break;
-			}
-			
-			System.out.print(sv[i].getName() + " = ");
-			System.out.println(sv[i]);
-		}
-	}
-
+	/** Integer codes for State Variable type. */
 	public static final int
 		TYPE_NOTDEFINED = 0,
 		TYPE_INT = TYPE_NOTDEFINED + 1,
 		TYPE_STRING = TYPE_NOTDEFINED + 2,
 		TYPE_FLOAT = TYPE_NOTDEFINED + 3;
 	
-	/** This array maps RDIS types to Java types */
+	/** Maps RDIS types to Java types and default values. */
 	private static final Object
 		TYPE_MAP[][] =
 		{

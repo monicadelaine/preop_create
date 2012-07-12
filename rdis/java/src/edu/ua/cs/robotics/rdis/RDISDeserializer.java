@@ -3,7 +3,6 @@ package edu.ua.cs.robotics.rdis;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -11,10 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-import org.python.core.PyInteger;
-import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 
+/**
+ * Deserializes an RDIS model from its textual syntax.
+ */
 public class RDISDeserializer {
 
 	public RDIS deserialize(String filename) throws FileNotFoundException, JSONException {
@@ -350,63 +350,4 @@ public class RDISDeserializer {
 			BAUD = "baud",
 			INTERVAL = "interval",
 			STATE_VARIABLES = "stateVariables";
-
-	public static void main(String args[]) {
-		if (args.length == 0) {
-			System.out.println("Usage: java RDISDeserializer <input-file>");
-			System.exit(1);
-			return;
-		}
-		
-		try {
-			RDISDeserializer deserializer = new RDISDeserializer();
-			RDIS rdis = deserializer.deserialize(args[0]);
-			
-//			rdis.addConnection(new SerialConnection(rdis, "btserial", 57600) {
-//				public void write(byte bytes[]) {
-//					int opcode = bytes[0];
-//
-//					opcode = (opcode < 0) ? opcode + 256 : opcode;
-//
-//					int velocity = (bytes[1] << 8) | (bytes[2] & 0xFF);
-//					int radius = (bytes[3] << 8) | (bytes[4] & 0xFF);
-//
-//					System.out.println("write(" + opcode + ", " + velocity + ", " + radius + ")");
-//				}
-//			});
-			
-			
-			
-			rdis.startup("/dev/rfcomm1");
-			
-			rdis.setCallback(new RDIS.Callback() {
-				public void onMessageReceived(String name, DomainAdapter contents) {
-					if(name.equals("detect_bump")) {
-						float dist = contents.getFloat(Range.DISTANCE);
-						System.out.println("Recv'd range " + dist);
-					}
-				}
-			});
-			
-			rdis.tick();
-			
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(-0.2f,-0.4f));
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(0.0f,0.0f));
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(0f,0.2f));
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(0f,0.2f));
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(0.2f,0f));
-			rdis.callDomainInterface("set_velocity", new DifferentialSpeed(-0.2f,0f));
-			
-			rdis.terminate();
-			
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (RDISException e) {
-			e.printStackTrace();
-		}
-
-	}
-
 }
